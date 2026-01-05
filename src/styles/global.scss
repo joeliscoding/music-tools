@@ -1,0 +1,58 @@
+:root {
+    /* colors */
+    --primary-color: #181a1b;
+    --secondary-color: #000000;
+    --primary-text-color: #e8e6e3;
+    --secondary-text-color: #ffffff;
+
+    /* lightmode colors */
+    --lightmode-primary-color: #e8e6e3;
+    --lightmode-secondary-color: #ffffff;
+    --lightmode-primary-text-color: #181a1b;
+    --lightmode-secondary-text-color: #000000;
+}
+
+
+/* fonts */
+
+/* MusiQwik */
+@font-face {
+    font-family: MusiQwik;
+    src: url(/src/lib/fonts/MusiQwik.woff2); /* url of the font */
+}
+
+
+/* css reset */
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    font-family: "JetBrains Mono", monospace;
+    vertical-align: baseline;
+}
+
+
+/* HTML5 display-role reset for older browsers */
+
+header, nav {
+    display: block;
+}
+
+body {
+    line-height: 1;
+    height: 100vh;
+}
+
+
+/* global styles */
+
+* {
+    text-transform: lowercase;
+}
+
+body {
+    background-color: var(--primary-color);
+}

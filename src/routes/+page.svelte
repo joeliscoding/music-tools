@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     /*
         & Treble Clef
         ¯ Bass Clef
@@ -6,24 +6,30 @@
 
     import { onMount } from 'svelte';
     import { on } from 'svelte/events';
+    import { Mic } from '@lucide/svelte';
+    import { MicOff } from '@lucide/svelte';
+    import { Volume2 } from '@lucide/svelte';
+    import { VolumeX } from '@lucide/svelte';
 
-    let recorder = null;
+    let recorder: MediaRecorder | null = null;
+    let sound = false;
 
-    // onMount(() => {
-    //     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    //         navigator.mediaDevices
-    //             .getUserMedia({ audio: true })
-    //             .then(SetupStream)
-    //             .catch((err) => {
-    //                 console.error(err);
-    //             });
-    //     }
-    // });
+    function microphoneAccess() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices
+                .getUserMedia({ audio: true })
+                .then(SetupStream)
+                .catch((err) => {
+                    console.error(err);
+                });
+        }
+    }
 
-    /**
-     * @param {MediaStream} stream
-     */
-    function SetupStream(stream) {
+    function toggleSound() {
+        sound = !sound;
+    }
+
+    function SetupStream(stream: MediaStream) {
         recorder = new MediaRecorder(stream);
     }
 
@@ -59,19 +65,73 @@
     });
 </script>
 
-<div>
-    <p class="sheet-music" id="display"></p>
+<div class="container">
+    <div class="buttons">
+        <ul>
+            <li>
+                <button on:click={microphoneAccess}>
+                    {#if recorder}
+                        <Mic />
+                    {:else}
+                        <MicOff />
+                    {/if}
+                </button>
+            </li>
+            <li>
+                <button on:click={toggleSound}>
+                    {#if sound}
+                        <Volume2 />
+                    {:else}
+                        <VolumeX />
+                    {/if}
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="sheet-music">
+        <p>{display}</p>
+    </div>
 </div>
 
 <style lang="scss">
-    div {
+    .buttons {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+
+            li {
+                margin-bottom: 0.5rem;
+
+                button {
+                    border: none;
+                    background: none;
+                    color: var(--primary-text-color);
+                    transition: opacity 0.2s ease-in-out;
+
+                    &:hover {
+                        cursor: pointer;
+                        opacity: 0.5;
+                    }
+                }
+            }
+        }
+    }
+    .sheet-music {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-    }
-    .sheet-music {
-        font-family: MusiQwik, sans-serif;
-        font-size: 10rem;
+
+        p {
+            font-family: MusiQwik, sans-serif;
+            font-size: 10rem;
+            color: var(--primary-text-color);
+        }
     }
 </style>
