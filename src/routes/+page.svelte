@@ -11,26 +11,64 @@
     import { Volume2 } from '@lucide/svelte';
     import { VolumeX } from '@lucide/svelte';
 
-    let recorder: MediaRecorder | null = null;
     let sound = false;
+    let micActive = false;
 
-    function microphoneAccess() {
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices
-                .getUserMedia({ audio: true })
-                .then(SetupStream)
-                .catch((err) => {
-                    console.error(err);
-                });
+    let context: AudioContext | null = null;
+    let stream: MediaStream | null = null;
+    let microphone: MediaStreamAudioSourceNode | null = null;
+
+    let analyser: AnalyserNode | null = null;
+    let dataArray: Float32Array<ArrayBuffer> | null = null;
+
+    async function micMode() {
+        context = new AudioContext();
+        if (context.state === 'suspended') {
+            await context.resume();
         }
+
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('test');
+        microphone = context.createMediaStreamSource(stream);
+        micActive = !micActive;
+
+        analyser = context.createAnalyser();
+        microphone.connect(analyser);
+
+        dataArray = new Float32Array(analyser.frequencyBinCount);
+
+        const minDecibels = -60;
+        const maxDecibels = 0;
+
+        const checkFrequency = () => {
+            if (analyser && dataArray && context) {
+                analyser.getFloatFrequencyData(dataArray);
+
+                const data = dataArray.reduce(
+                    (acc, decibels, index) => {
+                        const volume =
+                            ((decibels - minDecibels) / (maxDecibels - minDecibels)) * 100;
+
+                        if (volume > acc.maxVolume) {
+                            return { maxIndex: index, maxVolume: volume };
+                        }
+
+                        return acc;
+                    },
+                    { maxIndex: -1, maxVolume: 0 }
+                );
+                const frequency = (data.maxIndex * context.sampleRate) / analyser.fftSize;
+
+                console.log(frequency);
+            }
+            requestAnimationFrame(checkFrequency);
+        };
+
+        checkFrequency();
     }
 
     function toggleSound() {
         sound = !sound;
-    }
-
-    function SetupStream(stream: MediaStream) {
-        recorder = new MediaRecorder(stream);
     }
 
     let noteIndex = 0;
@@ -69,8 +107,8 @@
     <div class="buttons">
         <ul>
             <li>
-                <button on:click={microphoneAccess}>
-                    {#if recorder}
+                <button on:click={micMode}>
+                    {#if micActive}
                         <Mic />
                     {:else}
                         <MicOff />
